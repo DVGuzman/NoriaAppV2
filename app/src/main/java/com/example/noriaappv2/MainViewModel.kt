@@ -14,12 +14,33 @@ class MainViewModel : ViewModel() {
     private val _statusMessage = MutableStateFlow("Desconectado")
     val statusMessage: StateFlow<String> = _statusMessage
 
+    // 1. Nueva variable para el contador de personas
+    private val _personCount = MutableStateFlow(0)
+    val personCount: StateFlow<Int> = _personCount
+
     fun connect() {
         _statusMessage.value = "Conectando..."
-        mqttManager.connect("broker.hivemq.com", "NoriaAppClient") { success ->
-            _isConnected.value = success
-            _statusMessage.value = if (success) "Conectado al broker" else "Error de conexión"
-        }
+        // 2. Llamada al nuevo 'connect' con el listener de mensajes
+        mqttManager.connect(
+            serverHost = "broker.hivemq.com",
+            clientId = "NoriaAppClient",
+            connectionCallback = { success ->
+                _isConnected.value = success
+                _statusMessage.value = if (success) {
+                    // 3. Suscripción al topic al conectar
+                    mqttManager.subscribe("sensor_noria")
+                    "Conectado al broker"
+                } else {
+                    "Error de conexión"
+                }
+            },
+            messageCallback = { topic, payload ->
+                // 4. Actualización del contador si el mensaje es del topic correcto
+                if (topic == "sensor_noria") {
+                    _personCount.value = payload.toIntOrNull() ?: _personCount.value
+                }
+            }
+        )
     }
 
     fun startNoria() {

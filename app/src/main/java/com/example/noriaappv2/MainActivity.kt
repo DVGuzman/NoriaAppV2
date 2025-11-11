@@ -77,6 +77,11 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
     }
 
     val statusMessage by viewModel.statusMessage.collectAsState()
+    val showPersonCountDialog = remember { mutableStateOf(false) }
+
+    if (showPersonCountDialog.value) {
+        PersonCountDialog(viewModel) { showPersonCountDialog.value = false }
+    }
 
     Box(
         modifier = Modifier
@@ -121,7 +126,7 @@ fun MainScreen(navController: NavController, viewModel: MainViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
             ControlButton(text = "Funciones secundarias") { navController.navigate("secondary_functions") }
             Spacer(modifier = Modifier.height(16.dp))
-            ControlButton(text = "Personas dentro de la noria") { /* No action for now */ }
+            ControlButton(text = "Personas dentro de la noria") { showPersonCountDialog.value = true }
         }
     }
 }
@@ -196,6 +201,28 @@ fun SecondaryFunctionsScreen(viewModel: MainViewModel) {
             ControlButton(text = "Iniciar / Detener proyecto totalmente") { viewModel.stopProject() }
         }
     }
+}
+
+@Composable
+fun PersonCountDialog(viewModel: MainViewModel, onDismiss: () -> Unit) {
+    val count by viewModel.personCount.collectAsState()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Personas en la Noria") },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Text("Personas que han entrado:", fontSize = 16.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "$count", fontSize = 48.sp, fontWeight = FontWeight.Bold)
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                Text("Cerrar")
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
