@@ -168,6 +168,7 @@ fun BasicFunctionsScreen(viewModel: MainViewModel) {
 fun SecondaryFunctionsScreen(viewModel: MainViewModel) {
     val showColorDialog = remember { mutableStateOf(false) }
     val showMotorSpeedDialog = remember { mutableStateOf(false) }
+    val showServoDialog = remember { mutableStateOf(false) } // New state for servo dialog
 
     if (showColorDialog.value) {
         ColorPickerDialog(viewModel) { showColorDialog.value = false }
@@ -175,6 +176,10 @@ fun SecondaryFunctionsScreen(viewModel: MainViewModel) {
 
     if (showMotorSpeedDialog.value) {
         MotorSpeedDialog(viewModel) { showMotorSpeedDialog.value = false }
+    }
+
+    if (showServoDialog.value) {
+        ServoDialog(viewModel) { showServoDialog.value = false }
     }
 
     Box(
@@ -203,12 +208,54 @@ fun SecondaryFunctionsScreen(viewModel: MainViewModel) {
             Spacer(modifier = Modifier.height(16.dp))
             ControlButton(text = "Controlar velocidad del motor") { showMotorSpeedDialog.value = true }
             Spacer(modifier = Modifier.height(16.dp))
+            ControlButton(text = "Controlar Servomotor") { showServoDialog.value = true } // New button
+            Spacer(modifier = Modifier.height(16.dp))
             ControlButton(text = "Iniciar / Detener OLED") { viewModel.toggleOLED() }
             Spacer(modifier = Modifier.height(16.dp))
             ControlButton(text = "Iniciar / Detener proyecto") { viewModel.stopProject() }
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+@Composable
+fun ServoDialog(viewModel: MainViewModel, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Control del Servomotor") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = {
+                        viewModel.openServo()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63))
+                ) {
+                    Text("Abrir (90°)")
+                }
+                Button(
+                    onClick = {
+                        viewModel.closeServo()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63))
+                ) {
+                    Text("Cerrar (0°)")
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE91E63))
+            ) {
+                Text("Cerrar")
+            }
+        }
+    )
 }
 
 @Composable

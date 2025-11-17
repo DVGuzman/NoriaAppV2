@@ -71,4 +71,12 @@ class MainViewModel : ViewModel() {
     fun changeMotorSpeed(speed: Int) {
         sendJsonCommand("velocidad_motor", speed.toString())
     }
+
+    fun openServo() {
+        sendJsonCommand("servo", "abrir")
+    }
+
+    fun closeServo() {
+        sendJsonCommand("servo", "cerrar")
+    }
 }
