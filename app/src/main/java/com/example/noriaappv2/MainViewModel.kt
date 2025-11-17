@@ -17,6 +17,8 @@ class MainViewModel : ViewModel() {
     private val _personCount = MutableStateFlow(0)
     val personCount: StateFlow<Int> = _personCount
 
+    private var isOledOn = false // Estado para controlar el OLED
+
     fun connect() {
         _statusMessage.value = "Conectando..."
         mqttManager.connect("broker.hivemq.com", "NoriaAppClient") { success ->
@@ -24,8 +26,12 @@ class MainViewModel : ViewModel() {
             if (success) {
                 _statusMessage.value = "Conectado y esperando datos"
                 mqttManager.subscribe("sensor_Noria") { payload ->
-                    val count = payload.toIntOrNull() ?: 0
-                    _personCount.value = count
+                    // Se espera un payload en formato JSON como {"personas": 5}
+                    val countString = payload.substringAfter(":").substringBefore("}").trim()
+                    val count = countString.toIntOrNull()
+                    count?.let {
+                        _personCount.value = it
+                    }
                 }
             } else {
                 _statusMessage.value = "Error en la conexión con el broker"
@@ -57,11 +63,14 @@ class MainViewModel : ViewModel() {
     }
 
     fun changeNeoPixelColor(colorHex: String) {
-        sendJsonCommand("color", colorHex)
+        val cleanHex = colorHex.removePrefix("#")
+        sendJsonCommand("color", cleanHex)
     }
 
     fun toggleOLED() {
-        sendJsonCommand("oled")
+        isOledOn = !isOledOn // Cambia el estado
+        val oledCommand = if (isOledOn) "iniciar" else "detener"
+        sendJsonCommand("oled", oledCommand)
     }
 
     fun stopProject() {
